@@ -20,7 +20,9 @@ describe('AppController (e2e)', () => {
       const resp = await request(app.getHttpServer())
         .get('/')
         .set('Content-Type', 'application/json');
+
       expect(resp.status).toEqual(200);
+      expect(resp.body.errors).toBeUndefined();
       expect(resp.body.status).toEqual('ok');
     });
   });
@@ -31,6 +33,7 @@ describe('AppController (e2e)', () => {
         .get('/liveness_check')
         .set('Content-Type', 'application/json');
       expect(resp.status).toEqual(200);
+      expect(resp.body.errors).toBeUndefined();
       expect(resp.body.status).toEqual('up');
     });
   });
@@ -41,6 +44,7 @@ describe('AppController (e2e)', () => {
         .get('/readiness_check')
         .set('Content-Type', 'application/json');
       expect(resp.status).toEqual(200);
+      expect(resp.body.errors).toBeUndefined();
       expect(resp.body.status).toEqual('up');
     });
   });
