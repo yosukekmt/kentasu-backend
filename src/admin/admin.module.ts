@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { TransactionResolver } from './transactions/transaction.resolver';
 import { UserResolver } from './users/user.resolver';
 
 @Module({
@@ -16,6 +17,6 @@ import { UserResolver } from './users/user.resolver';
     AuthModule,
     FirebaseModule,
   ],
-  providers: [UserResolver],
+  providers: [TransactionResolver, UserResolver],
 })
 export class AdminModule {}
