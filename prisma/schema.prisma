@@ -32,21 +32,22 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")
 
+  results Result[]
   transactions Transaction[]
 
   @@map("users")
 }
 
 model Transaction {
-  id              String @id  @unique @default(uuid())  @map("id")
-  txHash          String                                @map("tx_hash")
-  fromWallet      String?                               @map("from_wallet")
-  toWallet        String?                               @map("to_wallet")
-  amountWei       Decimal  @db.Decimal(78, 0)           @map("amount_wei")
-  gasWei          Decimal? @db.Decimal(78, 0)           @map("gas_wei")
-  blockProducedAt DateTime?                             @map("block_produced_at")
-  txRaw           Json?                                 @map("tx_raw")
-  userId          String                                @map("user_id")
+  id              String @id  @unique @default(uuid()) @map("id")
+  txHash          String                               @map("tx_hash")
+  fromWallet      String?                              @map("from_wallet")
+  toWallet        String?                              @map("to_wallet")
+  amountWei       Decimal  @db.Decimal(78, 0)          @map("amount_wei")
+  gasWei          Decimal? @db.Decimal(78, 0)          @map("gas_wei")
+  blockProducedAt DateTime?                            @map("block_produced_at")
+  txRaw           Json?                                @map("tx_raw")
+  userId          String                               @map("user_id")
 
   deletedAt DateTime?                @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
@@ -56,3 +57,18 @@ model Transaction {
 
   @@map("transactions")
 }
+
+model Result {
+  id         String @id  @unique @default(uuid()) @map("id")
+  resultType String?                              @map("result_type")
+  userId     String                               @map("user_id")
+
+  deletedAt DateTime?                @map("deleted_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("results")
+}
+

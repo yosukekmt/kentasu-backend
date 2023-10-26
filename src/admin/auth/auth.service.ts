@@ -14,18 +14,9 @@ export class AuthService {
     const firebaseUser = await this.firebaseService.findOneByIdToken(
       firebaseTokenId,
     );
-    console.log('firebaseUser');
-    console.log(firebaseUser);
     let item = await this.prisma.admin.findUnique({
       where: { firebaseUserId: firebaseUser.uid },
     });
-    console.log('item1');
-    console.log(item);
-
-    console.log(firebaseUser.email);
-    console.log(firebaseUser.uid);
-    console.log(firebaseUser.toJSON());
-
     item = await this.prisma.admin.update({
       where: { id: item.id },
       data: {
@@ -34,8 +25,6 @@ export class AuthService {
         firebaseUserRaw: firebaseUser.toJSON(),
       },
     });
-    console.log('item2');
-    console.log(item);
     return item;
   }
 }

@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User, Transaction, Prisma } from '@prisma/client';
+import { Prisma, Result, Transaction, User } from '@prisma/client';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import * as request from 'supertest';
 import { FirebaseService } from '../src/admin/firebase/firebase.service';
@@ -56,6 +56,53 @@ describe('AppController (e2e)', () => {
 
     afterEach(async () => {
       spy.mockRestore();
+    });
+
+    describe('results', () => {
+      let item: Result;
+
+      beforeEach(async () => {
+        const data = {
+          resultType: 'medical_checkup',
+          user: {
+            create: {
+              wallet: faker.helpers.unique(faker.finance.ethereumAddress),
+              email: faker.helpers.unique(faker.internet.email),
+            },
+          },
+        };
+        item = await prisma.result.create({ data });
+      });
+
+      it('should be successfull with bearer token', async () => {
+        const resp = await request(app.getHttpServer())
+          .post('/admin/graphql')
+          .set('Content-Type', 'application/json')
+          .set('Authorization', `Bearer ${bearerToken}`)
+          .send('{"query": "{ results { id resultType }"}');
+        expect(resp.status).toEqual(200);
+        expect(resp.body.errors).toBeUndefined();
+        expect(resp.body.data.results.map((d) => d.id)).toContain(item.id);
+      });
+
+      it('should be Unauthorized with incorrect bearer token', async () => {
+        const resp = await request(app.getHttpServer())
+          .post('/admin/graphql')
+          .set('Content-Type', 'application/json')
+          .set('Authorization', 'Bearer INCORRECT_TOKEN')
+          .send('{"query": "{ results { id resultType } }"}');
+        expect(resp.status).toEqual(200);
+        expect(resp.body.errors[0].message).toEqual('Unauthorized');
+      });
+
+      it('should be Unauthorized without bearer token', async () => {
+        const resp = await request(app.getHttpServer())
+          .post('/admin/graphql')
+          .set('Content-Type', 'application/json')
+          .send('{"query": "{ results { id resultType } }"}');
+        expect(resp.status).toEqual(200);
+        expect(resp.body.errors[0].message).toEqual('Unauthorized');
+      });
     });
 
     describe('transactions', () => {
@@ -114,7 +161,7 @@ describe('AppController (e2e)', () => {
         const resp = await request(app.getHttpServer())
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
-          .send('{"query": "{ users { id email } }"}');
+          .send('{"query": "{ transactions { id txHash } }"}');
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -136,10 +183,13 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', `Bearer ${bearerToken}`)
-          .send('{"query": "{ users { id email } }"}');
+          .send(
+            '{"query": "{ users { id email results { id resultType } } }"}',
+          );
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.users.map((d) => d.id)).toContain(item.id);
+        console.log(JSON.stringify(resp.body.data.users));
       });
 
       it('should be Unauthorized with incorrect bearer token', async () => {
