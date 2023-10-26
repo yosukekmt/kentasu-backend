@@ -14,10 +14,7 @@ export class TransactionType {
       gasWei: data.gasWei.toString(),
       blockProducedAt: data.blockProducedAt,
       userId: data.userId,
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-      },
+      user: UserType.fromObj(data.user),
     };
   }
 

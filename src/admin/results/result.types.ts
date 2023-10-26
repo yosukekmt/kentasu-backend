@@ -9,10 +9,7 @@ export class ResultType {
       id: data.id,
       resultType: data.resultType,
       userId: data.userId,
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-      },
+      user: UserType.fromObj(data.user),
     };
   }
 

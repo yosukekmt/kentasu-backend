@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
+  Int,
   Parent,
   Query,
   ResolveField,
@@ -9,9 +10,12 @@ import {
 } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BearerAuthGuard } from '../auth/bearer-auth.guard';
+import { ResultOrderByInput } from '../results/result-order-by.input';
 import { ResultType } from '../results/result.types';
-import { UserType } from './user.types';
+import { TransactionOrderByInput } from '../transactions/transaction-order-by.input';
 import { TransactionType } from '../transactions/transaction.types';
+import { UserOrderByInput } from './user-order-by.input';
+import { UserType } from './user.types';
 
 @Resolver(() => UserType)
 export class UserResolver {
@@ -21,10 +25,15 @@ export class UserResolver {
   @Query(() => [UserType])
   async users(
     @Context('req') req: any,
-    @Args('skip', { defaultValue: 0, type: () => Number }) skip: number,
-    @Args('take', { defaultValue: 120, type: () => Number }) take: number,
+    @Args('orderBy', {
+      defaultValue: { field: 'createdAt', direction: 'desc' },
+    })
+    orderBy: UserOrderByInput,
+    @Args('skip', { defaultValue: 0, type: () => Int }) skip: number,
+    @Args('take', { defaultValue: 120, type: () => Int }) take: number,
   ): Promise<UserType[]> {
     const items = await this.prisma.user.findMany({
+      orderBy: { [orderBy.field]: orderBy.direction },
       skip: skip,
       take: Math.min(1200, take),
     });
@@ -34,12 +43,17 @@ export class UserResolver {
   @ResolveField(() => [ResultType])
   async results(
     @Parent() user: UserType,
-    @Args('skip', { defaultValue: 0, type: () => Number }) skip: number,
-    @Args('take', { defaultValue: 12, type: () => Number }) take: number,
+    @Args('orderBy', {
+      defaultValue: { field: 'createdAt', direction: 'desc' },
+    })
+    orderBy: ResultOrderByInput,
+    @Args('skip', { defaultValue: 0, type: () => Int }) skip: number,
+    @Args('take', { defaultValue: 12, type: () => Int }) take: number,
   ) {
     const items = await this.prisma.result.findMany({
       where: { userId: user.id },
       include: { user: true },
+      orderBy: { [orderBy.field]: orderBy.direction },
       skip: skip,
       take: Math.min(120, take),
     });
@@ -49,12 +63,17 @@ export class UserResolver {
   @ResolveField(() => [TransactionType])
   async transactions(
     @Parent() user: UserType,
-    @Args('skip', { defaultValue: 0, type: () => Number }) skip: number,
-    @Args('take', { defaultValue: 12, type: () => Number }) take: number,
+    @Args('orderBy', {
+      defaultValue: { field: 'createdAt', direction: 'desc' },
+    })
+    orderBy: TransactionOrderByInput,
+    @Args('skip', { defaultValue: 0, type: () => Int }) skip: number,
+    @Args('take', { defaultValue: 12, type: () => Int }) take: number,
   ) {
     const items = await this.prisma.transaction.findMany({
       where: { userId: user.id },
       include: { user: true },
+      orderBy: { [orderBy.field]: orderBy.direction },
       skip: skip,
       take: Math.min(120, take),
     });

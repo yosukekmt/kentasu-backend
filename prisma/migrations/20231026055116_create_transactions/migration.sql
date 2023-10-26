@@ -9,9 +9,9 @@ CREATE TABLE "transactions" (
     "block_produced_at" TIMESTAMP(3),
     "tx_raw" JSONB,
     "user_id" TEXT NOT NULL,
-    "deleted_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
 );

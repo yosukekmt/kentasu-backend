@@ -1,22 +1,28 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Context, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Int, Query, Resolver } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BearerAuthGuard } from '../auth/bearer-auth.guard';
+import { ResultOrderByInput } from './result-order-by.input';
 import { ResultType } from './result.types';
 
 @Resolver(() => ResultType)
-export class resultResolver {
+export class ResultResolver {
   constructor(private readonly prisma: PrismaService) {}
 
   @UseGuards(BearerAuthGuard)
   @Query(() => [ResultType])
   async results(
     @Context('req') req: any,
-    @Args('skip', { defaultValue: 0, type: () => Number }) skip: number,
-    @Args('take', { defaultValue: 120, type: () => Number }) take: number,
+    @Args('orderBy', {
+      defaultValue: { field: 'createdAt', direction: 'desc' },
+    })
+    orderBy: ResultOrderByInput,
+    @Args('skip', { defaultValue: 0, type: () => Int }) skip: number,
+    @Args('take', { defaultValue: 120, type: () => Int }) take: number,
   ): Promise<ResultType[]> {
     const items = await this.prisma.result.findMany({
       include: { user: true },
+      orderBy: { [orderBy.field]: orderBy.direction },
       skip: skip,
       take: Math.min(1200, take),
     });

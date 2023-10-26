@@ -3,9 +3,9 @@ CREATE TABLE "results" (
     "id" TEXT NOT NULL,
     "result_type" TEXT,
     "user_id" TEXT NOT NULL,
-    "deleted_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "results_pkey" PRIMARY KEY ("id")
 );

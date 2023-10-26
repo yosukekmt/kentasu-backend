@@ -4,7 +4,13 @@ import { User } from '@prisma/client';
 @ObjectType()
 export class UserType {
   static fromObj(data: User): UserType {
-    return { id: data.id, email: data.email };
+    return {
+      id: data.id,
+      email: data.email,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      deletedAt: data.deletedAt,
+    };
   }
 
   static fromAry(data: User[]): UserType[] {
@@ -16,4 +22,13 @@ export class UserType {
 
   @Field()
   email: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+
+  @Field()
+  deletedAt: Date;
 }

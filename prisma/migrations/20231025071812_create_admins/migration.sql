@@ -4,9 +4,9 @@ CREATE TABLE "admins" (
     "email" TEXT NOT NULL,
     "firebase_user_id" TEXT NOT NULL,
     "firebase_user_raw" JSONB,
-    "deleted_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "admins_pkey" PRIMARY KEY ("id")
 );

@@ -79,7 +79,7 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', `Bearer ${bearerToken}`)
-          .send('{"query": "{ results { id resultType }"}');
+          .send({ query: '{ results { id resultType } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.results.map((d) => d.id)).toContain(item.id);
@@ -90,7 +90,7 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send('{"query": "{ results { id resultType } }"}');
+          .send({ query: '{ results { id resultType } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -99,7 +99,7 @@ describe('AppController (e2e)', () => {
         const resp = await request(app.getHttpServer())
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
-          .send('{"query": "{ results { id resultType } }"}');
+          .send({ query: '{ results { id resultType } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -141,7 +141,7 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', `Bearer ${bearerToken}`)
-          .send('{"query": "{ transactions { id txHash } }"}');
+          .send({ query: '{ transactions { id txHash } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.transactions.map((d) => d.id)).toContain(item.id);
@@ -152,7 +152,7 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send('{"query": "{ transactions { id txHash } }"}');
+          .send({ query: '{ transactions { id txHash } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -161,7 +161,7 @@ describe('AppController (e2e)', () => {
         const resp = await request(app.getHttpServer())
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
-          .send('{"query": "{ transactions { id txHash } }"}');
+          .send({ query: '{ transactions { id txHash } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -183,13 +183,13 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', `Bearer ${bearerToken}`)
-          .send(
-            '{"query": "{ users { id email results { id resultType } } }"}',
-          );
+          .send({
+            query:
+              '{ users(orderBy: {field: "createdAt", direction: "desc"}) { id email createdAt results(orderBy: {field: "createdAt", direction: "desc"}) { id } transactions(orderBy: {field: "createdAt", direction: "desc"}) { id } } }',
+          });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.users.map((d) => d.id)).toContain(item.id);
-        console.log(JSON.stringify(resp.body.data.users));
       });
 
       it('should be Unauthorized with incorrect bearer token', async () => {
@@ -197,7 +197,7 @@ describe('AppController (e2e)', () => {
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
           .set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send('{"query": "{ users { id email } }"}');
+          .send({ query: '{ users { id email } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
@@ -206,7 +206,7 @@ describe('AppController (e2e)', () => {
         const resp = await request(app.getHttpServer())
           .post('/admin/graphql')
           .set('Content-Type', 'application/json')
-          .send('{"query": "{ users { id email } }"}');
+          .send({ query: '{ users { id email } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
