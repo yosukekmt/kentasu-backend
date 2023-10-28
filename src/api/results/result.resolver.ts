@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Int, Query, Resolver } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
-import { BearerAuthGuard } from '../auth/bearer-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ResultOrderByInput } from './result-order-by.input';
 import { ResultType } from './result.types';
 
@@ -9,7 +9,7 @@ import { ResultType } from './result.types';
 export class ResultResolver {
   constructor(private readonly prisma: PrismaService) {}
 
-  @UseGuards(BearerAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Query(() => [ResultType])
   async results(
     @Context('req') req: any,

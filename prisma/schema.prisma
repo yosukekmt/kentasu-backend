@@ -24,9 +24,13 @@ model Admin {
 }
 
 model User {
-  id     String @id  @unique @default(uuid()) @map("id")
-  email  String @unique                       @map("email")
-  wallet String @unique                       @map("wallet")
+  id                        String @id  @unique @default(uuid()) @map("id")
+  email                     String @unique                       @map("email")
+  walletAddress             String @unique                       @map("wallet_address")
+  walletPrivateKeyEncrypted String                               @map("wallet_private_key_encrypted")
+  walletRaw                 Json?                                @map("wallet_raw")
+  auth0UserId               String @unique                       @map("auth0_user_id")
+  auth0UserRaw              Json?                                @map("auth0_user_raw")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt      @map("updated_at")

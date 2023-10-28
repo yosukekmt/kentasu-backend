@@ -1,7 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Int, Query, Resolver } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
-import { BearerAuthGuard } from '../auth/bearer-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TransactionOrderByInput } from './transaction-order-by.input';
 import { TransactionType } from './transaction.types';
 
@@ -9,7 +9,7 @@ import { TransactionType } from './transaction.types';
 export class TransactionResolver {
   constructor(private readonly prisma: PrismaService) {}
 
-  @UseGuards(BearerAuthGuard)
+  //  @UseGuards(JwtAuthGuard)
   @Query(() => [TransactionType])
   async transactions(
     @Context('req') req: any,
