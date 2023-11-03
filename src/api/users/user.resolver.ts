@@ -9,7 +9,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { GqlAuthGuard } from '../authz/gql-auth.guard';
 import { ResultOrderByInput } from '../results/result-order-by.input';
 import { ResultType } from '../results/result.types';
 import { TransactionOrderByInput } from '../transactions/transaction-order-by.input';
@@ -21,7 +21,7 @@ import { UserType } from './user.types';
 export class UserResolver {
   constructor(private readonly prisma: PrismaService) {}
 
-  //@UseGuards(JwtAuthGuard)
+  @UseGuards(GqlAuthGuard)
   @Query(() => [UserType])
   async users(
     @Context('req') req: any,
@@ -32,6 +32,8 @@ export class UserResolver {
     @Args('skip', { defaultValue: 0, type: () => Int }) skip: number,
     @Args('take', { defaultValue: 120, type: () => Int }) take: number,
   ): Promise<UserType[]> {
+    console.log('UserResolver');
+    console.log(req.user);
     const items = await this.prisma.user.findMany({
       orderBy: { [orderBy.field]: orderBy.direction },
       skip: skip,

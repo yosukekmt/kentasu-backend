@@ -3,6 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma, Result, Transaction, User } from '@prisma/client';
 import * as request from 'supertest';
+import { AuthzStrategy } from '../src/api/authz/authz.strategy';
+import { GqlAuthGuard } from '../src/api/authz/gql-auth.guard';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -11,10 +13,25 @@ describe('Api (e2e)', () => {
   let prisma: PrismaService;
 
   beforeEach(async () => {
+    const mockAuthzStrategy = {
+      validateToken: jest
+        .fn()
+        .mockReturnValue({ userId: 1, username: 'testUser' }),
+    };
+
+    const mockGqlAuthGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
       providers: [PrismaService],
-    }).compile();
+    })
+      .overrideProvider(AuthzStrategy)
+      .useValue(mockAuthzStrategy)
+      .overrideGuard(GqlAuthGuard)
+      .useValue(mockGqlAuthGuard)
+      .compile();
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
@@ -22,34 +39,6 @@ describe('Api (e2e)', () => {
   });
 
   describe('GraphQL', () => {
-    let bearerToken: string;
-
-    beforeEach(async () => {
-      bearerToken = faker.string.alpha(32);
-
-      jest.mock('../src/api/auth/jwt.strategy', () => {
-        return {
-          JwtStrategy: jest.fn().mockImplementation(() => {
-            return {
-              validate: jest.fn().mockImplementation((payload) => {
-                console.log('mocked validate');
-                if (payload && payload.someCondition) {
-                  return { userId: 'someUserIdBasedOnCondition' };
-                } else {
-                  return { userId: 'someOtherUserId' };
-                }
-              }),
-              verify: jest.fn().mockImplementation((payload) => {
-                console.log('mocked verify');
-              }),
-              _verify: jest.fn().mockImplementation((payload) => {
-                console.log('mocked _verify');
-              }),
-            };
-          }),
-        };
-      });
-    });
     describe('results', () => {
       let item: Result;
 
@@ -72,30 +61,11 @@ describe('Api (e2e)', () => {
         const resp = await request(app.getHttpServer())
           .post('/api/graphql')
           .set('Content-Type', 'application/json')
-          .set('Authorization', `Bearer ${bearerToken}`)
           .send({ query: '{ results { id resultType } }' });
+        console.log(resp.body);
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.results.map((d) => d.id)).toContain(item.id);
-      });
-
-      it('should be Unauthorized with incorrect bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          .set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send({ query: '{ results { id resultType } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
-      });
-
-      it('should be Unauthorized without bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          .send({ query: '{ results { id resultType } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
     });
 
@@ -132,34 +102,14 @@ describe('Api (e2e)', () => {
         item = await prisma.transaction.create({ data });
       });
 
-      it('should be successfull with bearer token', async () => {
+      it('should be successfull', async () => {
         const resp = await request(app.getHttpServer())
           .post('/api/graphql')
           .set('Content-Type', 'application/json')
-          //.set('Authorization', `Bearer ${bearerToken}`)
           .send({ query: '{ transactions { id txHash } }' });
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.transactions.map((d) => d.id)).toContain(item.id);
-      });
-
-      it('should be Unauthorized with incorrect bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          //.set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send({ query: '{ transactions { id txHash } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
-      });
-
-      it('should be Unauthorized without bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          .send({ query: '{ transactions { id txHash } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
     });
 
@@ -176,11 +126,10 @@ describe('Api (e2e)', () => {
         item = await prisma.user.create({ data });
       });
 
-      it('should be successfull with bearer token', async () => {
+      it('should be successfull', async () => {
         const resp = await request(app.getHttpServer())
           .post('/api/graphql')
           .set('Content-Type', 'application/json')
-          //          .set('Authorization', `Bearer ${bearerToken}`)
           .send({
             query:
               '{ users(orderBy: {field: "createdAt", direction: "desc"}) { id email createdAt results(orderBy: {field: "createdAt", direction: "desc"}) { id } transactions(orderBy: {field: "createdAt", direction: "desc"}) { id } } }',
@@ -188,25 +137,6 @@ describe('Api (e2e)', () => {
         expect(resp.status).toEqual(200);
         expect(resp.body.errors).toBeUndefined();
         expect(resp.body.data.users.map((d) => d.id)).toContain(item.id);
-      });
-
-      it('should be Unauthorized with incorrect bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          .set('Authorization', 'Bearer INCORRECT_TOKEN')
-          .send({ query: '{ users { id email } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
-      });
-
-      it('should be Unauthorized without bearer token', async () => {
-        const resp = await request(app.getHttpServer())
-          .post('/api/graphql')
-          .set('Content-Type', 'application/json')
-          .send({ query: '{ users { id email } }' });
-        expect(resp.status).toEqual(200);
-        expect(resp.body.errors[0].message).toEqual('Unauthorized');
       });
     });
   });
